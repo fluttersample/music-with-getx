@@ -1,10 +1,9 @@
 
 
 import 'package:get/get.dart';
-import 'package:music_player_getx/core/GetController/GetController.dart';
 import 'package:music_player_getx/presentation/views/HomeView.dart';
 
-class SplashViewModel extends GetController
+class SplashViewModel extends GetxController
 {
 
 
