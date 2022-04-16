@@ -13,6 +13,8 @@ abstract class AudioQueryRepo{
 
   Future<bool> requestPermission();
 
+  Future<bool> permissionStatus();
+
   Future<Uint8List?>  getArtWork(int id ,
       [ArtworkType type =ArtworkType.AUDIO]);
 }

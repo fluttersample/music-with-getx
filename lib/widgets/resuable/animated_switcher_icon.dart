@@ -6,10 +6,15 @@ class AnimatedSwitcherIcon extends StatelessWidget {
   final IconData icFalse;
   final bool condition;
   final int duration;
+  final Color? colorTrueButton;
+  final Color? colorFalseButton;
+
   const AnimatedSwitcherIcon({
     Key? key,
   required this.icFalse,
   required this.icTrue,
+    this.colorTrueButton,
+    this.colorFalseButton,
   this.condition=false,
   this.duration = 300}) : super(key: key);
 
@@ -29,8 +34,10 @@ class AnimatedSwitcherIcon extends StatelessWidget {
       );
     },
       child: condition? Icon(icTrue,
-      key: const ValueKey('i1'),) : Icon(icFalse,
-      key: const ValueKey('i2')),
+      key: const ValueKey('i1'),
+      color: colorTrueButton,) : Icon(icFalse,
+      key: const ValueKey('i2'),
+      color: colorFalseButton),
     );
   }
 }

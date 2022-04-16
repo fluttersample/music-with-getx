@@ -1,11 +1,9 @@
 
 
-import 'dart:io';
-import 'dart:typed_data';
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:music_player_getx/repository/audio_manager/AudioManagerRepo.dart';
 import 'package:music_player_getx/repository/audio_query/AudioQueryRepo.dart';
 import 'package:on_audio_query/on_audio_query.dart';
@@ -26,12 +24,17 @@ class HomeViewModel extends GetxController {
     _listenToStateAudio();
   }
 
-  Rx<SongModel>? currentAudio = SongModel({}).obs ;
-  Rx<PlayerState> currentState = Rx<PlayerState>(PlayerState.STOPPED) ;
+  Rx<SongModel>? currentAudio = SongModel({}).obs;
+  Rx<PlayerState> currentState = Rx<PlayerState>(PlayerState(
+    false,ProcessingState.idle
+  ));
+  List<ProgressiveAudioSource> listSongs = [];
   void _listenToStateAudio (){
     _audioManagerRepo.getStateAudio().listen((event) {
-      print(event.toString() );
-      currentState.value = event;
+      print(event.toString());
+      currentState.value = PlayerState(event.playing,
+          event.processingState);
+
     });
   }
   Future<List<SongModel>> getAllSung()async{
@@ -40,7 +43,7 @@ class HomeViewModel extends GetxController {
     return result;
   }
   bool playNow(int id){
-    if(currentState.value == PlayerState.PLAYING && currentAudio?.value.id ==id)
+    if(currentState.value.playing && currentAudio?.value.id ==id)
     {
       return true;
     }
@@ -48,28 +51,40 @@ class HomeViewModel extends GetxController {
   }
 
 
-  void playOrPauseAudio(int id)
+  void playOrPauseAudio(SongModel data)
   {
-    print(id);
-    print(currentAudio?.value.id);
-    if(currentState.value == PlayerState.PLAYING )
+    if(currentState.value.playing )
       {
-        if( currentAudio?.value.id == id)
+
+        if( currentAudio?.value.id == data.id)
           {
             _pauseAudio();
             return;
           }
         _stopAudio();
+        _updateValue(data);
+        //_startAudio();
+        _playAudio();
         return;
       }
-    if(currentState.value == PlayerState.PAUSED &&
-        currentAudio?.value.id == id)
+    if(currentState.value.processingState
+    ==ProcessingState.ready
+        &&
+        currentAudio?.value.id == data.id)
       {
+        print("SDADADADADADADADADADADA");
         _resumeAudio();
         return;
       }
-    _startAudio();
 
+    _updateValue(data);
+   _startAudio();
+    _playAudio();
+
+  }
+  void _updateValue(SongModel value)
+  {
+    currentAudio?.value = value;
   }
   void _stopAudio()
   {
@@ -77,10 +92,8 @@ class HomeViewModel extends GetxController {
   }
   void _startAudio()
   {
-
-    _audioManagerRepo.startAudio(
-      url: currentAudio!.value.data,
-    );
+    print("DSAAAAAAAAAAAAAAA");
+    _audioManagerRepo.startAudio(listSongs);
   }
   void _pauseAudio()
   {
@@ -91,15 +104,11 @@ class HomeViewModel extends GetxController {
     _audioManagerRepo.resumeAudio();
   }
 
-//   Future<String> _getUrlCover ()async{
-//       final result = await _audioQueryRepo.getArtWork(39);
-// //      print(String.fromCharCodes(result!));
-//
-//
-//        return String.fromCharCodes(result!);
-//
-//
-//   }
+  void _playAudio()
+  {
+    _audioManagerRepo.playAudio();
+  }
+
 
 
 }

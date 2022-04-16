@@ -1,18 +1,24 @@
 
 
 
-import 'package:audioplayers/audioplayers.dart';
+
+
+import 'package:just_audio/just_audio.dart';
 
 abstract class AudioManagerRepo {
 
-  Future<int> startAudio({
-    required String url,
-  });
+  Future<Duration?> startAudio(
+  List<ProgressiveAudioSource> urls
+  );
 
-  Future<int> pauseAudio();
-  Future<int> stopAudio();
-  Future<int> resumeAudio();
-    Future<int> seekAudio({
+  Future<void> pauseAudio();
+  Future<void> playAudio();
+
+  Future<void> stopAudio();
+
+  Future<void> resumeAudio();
+
+    Future<void> seekAudio({
     required Duration duration,
   });
 

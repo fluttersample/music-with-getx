@@ -1,6 +1,6 @@
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:get/get.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:music_player_getx/presentation/controller/HomeViewModel.dart';
 import 'package:music_player_getx/widgets/error_widget.dart';
 import 'package:music_player_getx/widgets/loading_widget.dart';
@@ -101,11 +101,17 @@ class HomeView extends GetView<HomeViewModel> {
                      )),
 
                     ElevationButtonWidget(
-                     onPress: (){},
-                     widget: AnimatedSwitcherIcon(
-                           icFalse: Icons.play_arrow,
-                           icTrue: Icons.pause,
-                           condition: false),
+                      color: theme.primaryColorLight,
+                     onPress: (){
+                        controller.playOrPauseAudio(data);
+                     },
+                     widget: Obx(() => AnimatedSwitcherIcon(
+                             icFalse: Icons.play_arrow,
+                             colorFalseButton: theme.colorScheme.surface,
+                             colorTrueButton: theme.colorScheme.surface,
+                             icTrue: Icons.pause,
+                             condition: controller.playNow(data.id)),
+                     ),
                      ),
                     ElevationButtonWidget(
                      onPress: (){},
@@ -143,6 +149,7 @@ class HomeView extends GetView<HomeViewModel> {
             return const NotFoundDataWidget();
           }
           return GridView.builder(
+            physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
               itemCount: snp.data?.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -152,6 +159,11 @@ class HomeView extends GetView<HomeViewModel> {
                   mainAxisSpacing: 12),
               itemBuilder: (context, index) {
                 final model = snp.data![index];
+                controller.listSongs.add(
+                    ProgressiveAudioSource(
+                        Uri.parse(model.uri!)
+                    ));
+
                 return _buildItemMusic(model, theme);
               });
         },
@@ -174,6 +186,12 @@ class HomeView extends GetView<HomeViewModel> {
                   artworkFit: BoxFit.fill,
                   artworkBorder: BorderRadius.circular(0),
                   type: ArtworkType.AUDIO,
+                    errorBuilder: (_,ob,st){
+                      return const MyErrorWidget();
+                    },
+                  nullArtworkWidget: Container(
+                    color: theme.primaryColorLight.withOpacity(0.5),
+                      child: MyErrorWidget(size: 45,)),
                 ),
                 _buildPlaySound(data),
 
@@ -250,16 +268,13 @@ class HomeView extends GetView<HomeViewModel> {
       child: CircleButtonNeu(
         color: Colors.white,
         onPress: () {
-          controller.currentAudio?.value = data;
-          controller.currentAudio?.refresh();
-          controller.playOrPauseAudio(data.id);
+          controller.playOrPauseAudio(data);
         },
         child: Obx(() => AnimatedSwitcherIcon(
                 icFalse: Icons.play_arrow,
                 icTrue: Icons.pause,
                 condition: controller.playNow(data.id)),
         ),
-
         depth: 0,
       ),
     );

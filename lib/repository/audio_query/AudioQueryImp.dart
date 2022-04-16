@@ -40,6 +40,11 @@ class AudioQueryImp extends AudioQueryRepo
     return result;
   }
 
+  @override
+  Future<bool> permissionStatus() async{
+   return await _audioQuery.permissionsStatus();
+  }
+
 
 
 
