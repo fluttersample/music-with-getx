@@ -1,3 +1,4 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:get/get.dart';
 import 'package:music_player_getx/presentation/controller/HomeViewModel.dart';
@@ -24,8 +25,7 @@ class HomeView extends GetView<HomeViewModel> {
           appBar: AppbarWidget(
             text: 'Evo Music',
             onPressLeftBtn: () {
-              print(controller.nowIsPlay.value);
-              print(controller.currentAudio?.value.data);
+              print(controller.currentAudio?.value.getMap);
             },
             onPressRightBtn: () {
               print("SAD");
@@ -55,12 +55,14 @@ class HomeView extends GetView<HomeViewModel> {
                     right: 8.0,
                 left: 8.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     SizedBox(
                       width: 50,
                       height: 50,
                       child: QueryArtworkWidget(
                         id: data!.id,
+                        artworkFit: BoxFit.cover,
                         type: ArtworkType.AUDIO,
                         errorBuilder: (_,ob,st){
                           return const MyErrorWidget();
@@ -68,8 +70,7 @@ class HomeView extends GetView<HomeViewModel> {
                     const SizedBox(
                       width: 15,
                     ),
-                    Container(
-                      width: 160,
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
@@ -101,12 +102,11 @@ class HomeView extends GetView<HomeViewModel> {
 
                     ElevationButtonWidget(
                      onPress: (){},
-                     widget: Obx(
-                       () => AnimatedSwitcherIcon(
+                     widget: AnimatedSwitcherIcon(
                            icFalse: Icons.play_arrow,
                            icTrue: Icons.pause,
-                           condition: controller.nowIsPlay.value),
-                     )),
+                           condition: false),
+                     ),
                     ElevationButtonWidget(
                      onPress: (){},
                      widget: const Icon(
@@ -175,7 +175,8 @@ class HomeView extends GetView<HomeViewModel> {
                   artworkBorder: BorderRadius.circular(0),
                   type: ArtworkType.AUDIO,
                 ),
-                _buildPlaySound(data)
+                _buildPlaySound(data),
+
               ],
             ),
           ),
@@ -198,7 +199,10 @@ class HomeView extends GetView<HomeViewModel> {
               ),
               Text(
                 data.displayName,
-                style: theme.textTheme.subtitle2!.copyWith(color: Colors.grey),
+                style: theme.textTheme.subtitle2!.copyWith(color: Colors.grey).
+                copyWith(
+                  fontSize: 13
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               )
@@ -246,15 +250,16 @@ class HomeView extends GetView<HomeViewModel> {
       child: CircleButtonNeu(
         color: Colors.white,
         onPress: () {
-          controller.nowIsPlay.value = !controller.nowIsPlay.value;
           controller.currentAudio?.value = data;
+          controller.currentAudio?.refresh();
+          controller.playOrPauseAudio(data.id);
         },
-        child: Obx(
-          () => AnimatedSwitcherIcon(
-              icFalse: Icons.play_arrow,
-              icTrue: Icons.pause,
-              condition: controller.nowIsPlay.value),
+        child: Obx(() => AnimatedSwitcherIcon(
+                icFalse: Icons.play_arrow,
+                icTrue: Icons.pause,
+                condition: controller.playNow(data.id)),
         ),
+
         depth: 0,
       ),
     );

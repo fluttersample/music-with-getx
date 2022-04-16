@@ -10,19 +10,12 @@ class SplashViewModel extends GetxController
   @override
   void onInit() {
     super.onInit();
-    print('asdsadsad');
-    Future.delayed(const Duration(seconds: 2),
+    Future.delayed(const Duration(seconds: 1),
         (){
           Get.offAndToNamed(HomeView.id);
         });
 
   }
 
-  @override
-  void onReady() {
-    print('asdsadsad');
 
-    super.onReady();
-
-  }
 }

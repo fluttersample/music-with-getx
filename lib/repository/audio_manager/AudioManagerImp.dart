@@ -1,28 +1,49 @@
 
 
 
-import 'package:audio_manager/audio_manager.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:music_player_getx/repository/audio_manager/AudioManagerRepo.dart';
 
 class AudioManagerImp extends AudioManagerRepo
 {
-  final audio = AudioManager.instance;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+  var stateAudio = PlayerState.STOPPED;
 
   @override
-  Future startAudio({
-    required String url,
-    required String title,
-    required String desc,
-    required String urlCover}) async{
-
-    await audio.start(
+  Future<int> startAudio({
+    required String url,}) async{
+   return await _audioPlayer.play(
         url,
-        title,
-        desc: desc,
-        cover: urlCover).then((value) {
-          print(value);
-    });
+       isLocal: true
+         );
+  }
 
+  @override
+  Future<int> pauseAudio() async{
+    return await _audioPlayer.pause();
+  }
+
+  @override
+  Future<int> resumeAudio() async{
+
+
+    return await _audioPlayer.resume();
+  }
+
+  @override
+  Future<int> seekAudio({required Duration duration}) async{
+    return await _audioPlayer.seek(duration);
+  }
+
+  @override
+  Future<int> stopAudio() async{
+    return await _audioPlayer.stop();
+  }
+
+  @override
+  Stream<PlayerState> getStateAudio() {
+
+    return _audioPlayer.onPlayerStateChanged;
   }
 
 }

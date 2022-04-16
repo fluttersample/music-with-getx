@@ -1,12 +1,22 @@
 
 
 
+import 'package:audioplayers/audioplayers.dart';
+
 abstract class AudioManagerRepo {
 
-  Future startAudio({
+  Future<int> startAudio({
     required String url,
-    required String title,
-    required String desc,
-    required String urlCover
   });
+
+  Future<int> pauseAudio();
+  Future<int> stopAudio();
+  Future<int> resumeAudio();
+    Future<int> seekAudio({
+    required Duration duration,
+  });
+
+    Stream<PlayerState> getStateAudio ();
+
+
 }
