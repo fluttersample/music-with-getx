@@ -34,14 +34,18 @@ class HomeViewModel extends GetxController {
 
 
 
-  List<SongModel> listSongsModel = [];
+  Rx<List<SongModel>> listSongsModel = Rx<List<SongModel>>([]);
   int indexCurrent =0;
 
+  List<SongModel> get getValueListSongModel  =>listSongsModel.value;
+
+   set _setValueListSongModel (List<SongModel> data) =>
+       listSongsModel.value = data;
 
   Future<List<SongModel>> getAllSung()async{
    await _audioQueryRepo.requestPermission();
-    listSongsModel =await _audioQueryRepo.getAllSong();
-    return listSongsModel;
+    _setValueListSongModel =await _audioQueryRepo.getAllSong();
+    return getValueListSongModel;
   }
   void _updateValue(SongModel value)
   {
@@ -59,7 +63,7 @@ class HomeViewModel extends GetxController {
     return await _audioPlayersRepo.startAudio(url: url);
   }
   bool isPlayNow(int id){
-    if(StateAudio.value == PlayerState.PLAYING &&
+    if(stateAudio.value == PlayerState.PLAYING &&
         currentAudio?.value.id ==id)
     {
       return true;
@@ -81,7 +85,7 @@ class HomeViewModel extends GetxController {
   void playOrPause(SongModel data,int index)
   {
     indexCurrent = index;
-    if(StateAudio.value == PlayerState.PLAYING)
+    if(stateAudio.value == PlayerState.PLAYING)
     {
       if(currentAudio!.value.id == data.id)
       {
@@ -93,7 +97,7 @@ class HomeViewModel extends GetxController {
       playe(data.data);
       return;
     }
-    if(StateAudio.value == PlayerState.PAUSED)
+    if(stateAudio.value == PlayerState.PAUSED)
     {
       if(currentAudio!.value.id == data.id)
       {
@@ -109,27 +113,72 @@ class HomeViewModel extends GetxController {
 
 
   }
-  var StateAudio = Rx<PlayerState>(PlayerState.STOPPED);
+  var stateAudio = Rx<PlayerState>(PlayerState.STOPPED);
   void getStateAudio ()
   {
     _audioPlayersRepo.getStateAudio().listen((event) {
-      StateAudio.value = event;
+      stateAudio.value = event;
     });
+  }
+  bool isLastItem()
+  {
+    if(indexCurrent == getValueListSongModel.length-1){
+      return true;
+    }
+    return false;
+
+  }
+  bool isFirstItem()
+  {
+    if(indexCurrent == 0)
+      {
+        return true;
+      }
+    return false;
   }
   void sinSeekToNext()
   {
-    indexCurrent = indexCurrent+1;
-    print(indexCurrent);
-    final data = listSongsModel[indexCurrent];
+    // if(indexCurrent == listSongsModel.length-1)
+    //   {
+    //     indexCurrent = 0;
+    //     final data = listSongsModel[indexCurrent];
+    //     playOrPause(data, indexCurrent);
+    //     return;
+    //   }
+
+    indexCurrent = isLastItem() ? 0 :indexCurrent+1;
+    print('Index rrent : ' + indexCurrent.toString());
+    print(getValueListSongModel.length);
+    final data = getValueListSongModel[indexCurrent];
     playOrPause(data, indexCurrent);
 
   }
   void sinSeekToPrevious()
   {
-    indexCurrent = indexCurrent-1;
+    indexCurrent = isFirstItem()? getValueListSongModel.length-1 : indexCurrent-1;
     print(indexCurrent);
-    final data = listSongsModel[indexCurrent];
+    final data = getValueListSongModel[indexCurrent];
     playOrPause(data, indexCurrent);
+  }
+
+  void searchInListAudio(String query)async
+  {
+    List<SongModel> _resultSearch = [];
+    List<SongModel> allAudio=await getAllSung();
+    if(query.isEmpty)
+      {
+        _setValueListSongModel =allAudio;
+        return;
+      }
+
+        for (var element in allAudio) {
+          if(element.title.contains(query) )
+          {
+            _resultSearch.add(element);
+          }
+        }
+        _setValueListSongModel =_resultSearch;
+
   }
 
 

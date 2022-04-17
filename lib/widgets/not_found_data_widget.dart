@@ -9,8 +9,15 @@ class NotFoundDataWidget extends StatelessWidget {
        this.title='Not Found Data'}) : super(key: key);
   @override
   Widget build(BuildContext context) {
-    return Center(
-        child: Text(title,
-        style: Theme.of(context).textTheme.headline5,) );
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Image.asset('assets/images/no_image.png',
+            height: 300,),
+          Text(title,
+          style: Theme.of(context).textTheme.headline5,),
+        ],
+      ),
+    );
   }
 }

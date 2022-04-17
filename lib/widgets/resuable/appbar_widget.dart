@@ -44,14 +44,41 @@ class AppbarWidget extends StatelessWidget
             mainAxisSize: MainAxisSize.min,
 
             children: [
-              if(showLeftBtn)
-              CircleButtonNeu(
+
+              showLeftBtn?CircleButtonNeu(
                   onPress: onPressLeftBtn!,
                   child: Icon(
                     iconLeft,
                     size: 20,
                     color: Colors.grey.shade800,
-                  ),),
+                  ),) : SizedBox(
+                height: 45,
+                    width: 45,
+                    child: CircleButtonNeu(
+                    onPress: () {
+
+                    },
+                    child:  PopupMenuButton(
+                      onSelected: (index){
+                        print(index);
+                      },
+                      initialValue: 0,
+
+                      itemBuilder: (context) => [
+                        PopupMenuItem(child: Row(
+                          children: [
+                            Icon(Icons.vertical_align_bottom_sharp),
+                            Text('Vertical')
+                          ],
+                        )),
+                        PopupMenuItem(child: Row(
+                          children: [
+                            Icon(Icons.horizontal_split_sharp),
+                            Text('Horizontal')
+                          ],
+                        )),
+                      ],)),
+                  ),
 
               const Spacer(),
               Text(text,

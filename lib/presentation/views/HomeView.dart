@@ -1,6 +1,5 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:get/get.dart';
-import 'package:just_audio/just_audio.dart';
 import 'package:music_player_getx/presentation/controller/HomeViewModel.dart';
 import 'package:music_player_getx/widgets/error_widget.dart';
 import 'package:music_player_getx/widgets/loading_widget.dart';
@@ -24,8 +23,11 @@ class HomeView extends GetView<HomeViewModel> {
       builder: (_) => Scaffold(
           appBar: AppbarWidget(
             text: 'Evo Music',
+            showLeftBtn: false,
+
             onPressLeftBtn: () {
               print(controller.currentAudio?.value.getMap);
+
             },
             onPressRightBtn: () {
               print("SAD");
@@ -33,11 +35,12 @@ class HomeView extends GetView<HomeViewModel> {
           ),
           bottomSheet: _buildBottomSheet(theme),
           body: Column(
-            children: [_buildSearchWidget(context), _buildBody(theme)],
+            children: [_buildSearchWidget(context,
+            controller), _buildBody(theme)],
           )),
     );
   }
-  Widget _buildSearchWidget(BuildContext context) {
+  Widget _buildSearchWidget(BuildContext context,HomeViewModel controller) {
     return Neumorphic(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 25),
       style: const NeumorphicStyle(
@@ -62,9 +65,7 @@ class HomeView extends GetView<HomeViewModel> {
                   style: BorderStyle.none,
                 ),
               )),
-          onChanged: (value){
-
-          },
+          onChanged: controller.searchInListAudio,
         ),
       ),
     );
@@ -128,7 +129,7 @@ class HomeView extends GetView<HomeViewModel> {
                      onPress: (){
                        controller.sinSeekToPrevious();
                      },
-                     widget: Icon(
+                     widget: const Icon(
                        Icons.skip_previous_sharp
                      )),
 
@@ -183,21 +184,29 @@ class HomeView extends GetView<HomeViewModel> {
           if (!snp.hasData) {
             return const NotFoundDataWidget();
           }
-          return GridView.builder(
-            physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6)
-              +const EdgeInsets.only(bottom: 50),
-              itemCount: snp.data?.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1 / 1.3,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12),
-              itemBuilder: (context, index) {
-                final model = snp.data![index];
-                return _buildItemMusic(model, theme,
-                index);
-              });
+          return Obx(
+            () {
+              if(controller.getValueListSongModel.isEmpty)
+                {
+                  return const NotFoundDataWidget();
+                }
+              return GridView.builder(
+              physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6)
+                +const EdgeInsets.only(bottom: 50),
+                itemCount: controller.getValueListSongModel.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 1 / 1.3,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12),
+                itemBuilder: (context, index) {
+                  final model = controller.getValueListSongModel[index];
+                  return _buildItemMusic(model, theme,
+                  index);
+                });
+            },
+          );
         },
       ),
     );
@@ -286,6 +295,10 @@ class HomeView extends GetView<HomeViewModel> {
         depth: 0,
       ),
     );
+  }
+  void openPopupMenu()
+  {
+
   }
 }
 
