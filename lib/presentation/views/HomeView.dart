@@ -37,6 +37,38 @@ class HomeView extends GetView<HomeViewModel> {
           )),
     );
   }
+  Widget _buildSearchWidget(BuildContext context) {
+    return Neumorphic(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 25),
+      style: const NeumorphicStyle(
+        color: Colors.white,
+        boxShape: NeumorphicBoxShape.stadium(),
+        depth: 1,
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 18),
+      child: SizedBox(
+        height: 30,
+        child: TextField(
+          controller: controller.searchController,
+          decoration: const InputDecoration(
+              hintText: "search music",
+              contentPadding: EdgeInsets.all(0),
+              enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    style: BorderStyle.none,
+                  )),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(
+                  style: BorderStyle.none,
+                ),
+              )),
+          onChanged: (value){
+
+          },
+        ),
+      ),
+    );
+  }
 
   Widget _buildBottomSheet(ThemeData theme) {
     return StreamBuilder<SongModel>(
@@ -94,7 +126,7 @@ class HomeView extends GetView<HomeViewModel> {
                     ),
                  ElevationButtonWidget(
                      onPress: (){
-
+                       controller.sinSeekToPrevious();
                      },
                      widget: Icon(
                        Icons.skip_previous_sharp
@@ -103,18 +135,21 @@ class HomeView extends GetView<HomeViewModel> {
                     ElevationButtonWidget(
                       color: theme.primaryColorLight,
                      onPress: (){
-                        controller.playOrPauseAudio(data);
+                        controller.playOrPause(data,controller.indexCurrent);
                      },
                      widget: Obx(() => AnimatedSwitcherIcon(
                              icFalse: Icons.play_arrow,
                              colorFalseButton: theme.colorScheme.surface,
                              colorTrueButton: theme.colorScheme.surface,
                              icTrue: Icons.pause,
-                             condition: controller.playNow(data.id)),
+                             condition: controller.isPlayNow(data.id)),
                      ),
                      ),
                     ElevationButtonWidget(
-                     onPress: (){},
+                     onPress: (){
+
+                      controller.sinSeekToNext();
+                     },
                      widget: const Icon(
                        Icons.skip_next_sharp
                      )),
@@ -150,7 +185,8 @@ class HomeView extends GetView<HomeViewModel> {
           }
           return GridView.builder(
             physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6)
+              +const EdgeInsets.only(bottom: 50),
               itemCount: snp.data?.length,
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
@@ -159,121 +195,93 @@ class HomeView extends GetView<HomeViewModel> {
                   mainAxisSpacing: 12),
               itemBuilder: (context, index) {
                 final model = snp.data![index];
-                controller.listSongs.add(
-                    ProgressiveAudioSource(
-                        Uri.parse(model.uri!)
-                    ));
-
-                return _buildItemMusic(model, theme);
+                return _buildItemMusic(model, theme,
+                index);
               });
         },
       ),
     );
   }
 
-  Widget _buildItemMusic(SongModel data, ThemeData theme) {
-    return Column(
-      children: [
-        AspectRatio(
-          aspectRatio: 1 / 1,
-          child: Neumorphic(
-            style: const NeumorphicStyle(depth: 4, intensity: 0.8),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                QueryArtworkWidget(
-                  id: data.id,
-                  artworkFit: BoxFit.fill,
-                  artworkBorder: BorderRadius.circular(0),
-                  type: ArtworkType.AUDIO,
-                    errorBuilder: (_,ob,st){
-                      return const MyErrorWidget();
-                    },
-                  nullArtworkWidget: Container(
-                    color: theme.primaryColorLight.withOpacity(0.5),
-                      child: MyErrorWidget(size: 45,)),
-                ),
-                _buildPlaySound(data),
+  Widget _buildItemMusic(SongModel data, ThemeData theme, int index) {
+    return GestureDetector(
+      onTap: () => print(data.uri),
+      child: Column(
+        children: [
+          AspectRatio(
+            aspectRatio: 1 / 1,
+            child: Neumorphic(
+              style: const NeumorphicStyle(depth: 4, intensity: 0.8),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  QueryArtworkWidget(
+                    id: data.id,
+                    artworkFit: BoxFit.fill,
+                    artworkBorder: BorderRadius.circular(0),
+                    type: ArtworkType.AUDIO,
+                      errorBuilder: (_,ob,st){
+                        return const MyErrorWidget();
+                      },
+                    nullArtworkWidget: Container(
+                      color: theme.primaryColorLight.withOpacity(0.5),
+                        child: MyErrorWidget(size: 45,)),
+                  ),
+                  _buildPlaySound(data,index),
 
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(
+            height: 5,
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  data.title,
+                  style: theme.textTheme.subtitle1!.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  data.displayName,
+                  style: theme.textTheme.subtitle2!.copyWith(color: Colors.grey).
+                  copyWith(
+                    fontSize: 13
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                )
               ],
             ),
           ),
-        ),
-        const SizedBox(
-          height: 5,
-        ),
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                data.title,
-                style: theme.textTheme.subtitle1!.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              Text(
-                data.displayName,
-                style: theme.textTheme.subtitle2!.copyWith(color: Colors.grey).
-                copyWith(
-                  fontSize: 13
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              )
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchWidget(BuildContext context) {
-    return Neumorphic(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 25),
-      style: NeumorphicStyle(
-        color: Colors.white,
-        boxShape: const NeumorphicBoxShape.stadium(),
-        depth: NeumorphicTheme.embossDepth(context),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 18),
-      child: SizedBox(
-        height: 30,
-        child: TextField(
-          controller: controller.searchController,
-          decoration: const InputDecoration(
-              hintText: "search music",
-              contentPadding: EdgeInsets.all(0),
-              enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                style: BorderStyle.none,
-              )),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  style: BorderStyle.none,
-                ),
-              )),
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildPlaySound(SongModel data) {
+
+
+  Widget _buildPlaySound(SongModel data,int index) {
     return Positioned(
       bottom: 15,
       right: 4,
       child: CircleButtonNeu(
         color: Colors.white,
         onPress: () {
-          controller.playOrPauseAudio(data);
+          // controller.playOrPauseAudio(data,index);
+          controller.playOrPause(data,index);
         },
         child: Obx(() => AnimatedSwitcherIcon(
                 icFalse: Icons.play_arrow,
                 icTrue: Icons.pause,
-                condition: controller.playNow(data.id)),
+                condition: controller.isPlayNow(data.id)),
         ),
         depth: 0,
       ),

@@ -17,4 +17,10 @@ abstract class AudioQueryRepo{
 
   Future<Uint8List?>  getArtWork(int id ,
       [ArtworkType type =ArtworkType.AUDIO]);
+
+  Future<List<dynamic>> getSongWithFilter(String textSearch);
+
+  Future<List<SongModel>> getSongWithWhere(Object where);
+
+
 }

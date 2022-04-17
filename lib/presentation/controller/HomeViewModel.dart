@@ -1,112 +1,135 @@
 
 
 
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:music_player_getx/repository/audio_manager/AudioManagerRepo.dart';
+
+import 'package:music_player_getx/repository/audio_players/AudioPlayersRepo.dart';
 import 'package:music_player_getx/repository/audio_query/AudioQueryRepo.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:audioplayers/audioplayers.dart' ;
+
 
 class HomeViewModel extends GetxController {
   final AudioQueryRepo _audioQueryRepo;
-  final AudioManagerRepo _audioManagerRepo;
-
-  HomeViewModel({required AudioManagerRepo audioManagerRepo,
-                required AudioQueryRepo audioQueryRepo}) :
-  _audioManagerRepo = audioManagerRepo , _audioQueryRepo = audioQueryRepo;
+  final AudioPlayersRepo _audioPlayersRepo;
+  HomeViewModel({
+                required AudioQueryRepo audioQueryRepo,
+  required AudioPlayersRepo audioPlayersRepo}) :
+    _audioQueryRepo = audioQueryRepo,
+  _audioPlayersRepo = audioPlayersRepo;
 
   final searchController = TextEditingController();
+
 
   @override
   void onInit() {
     super.onInit();
-    _listenToStateAudio();
+    getStateAudio();
+
   }
 
   Rx<SongModel>? currentAudio = SongModel({}).obs;
-  Rx<PlayerState> currentState = Rx<PlayerState>(PlayerState(
-    false,ProcessingState.idle
-  ));
-  List<ProgressiveAudioSource> listSongs = [];
-  void _listenToStateAudio (){
-    _audioManagerRepo.getStateAudio().listen((event) {
-      print(event.toString());
-      currentState.value = PlayerState(event.playing,
-          event.processingState);
 
-    });
-  }
+
+
+  List<SongModel> listSongsModel = [];
+  int indexCurrent =0;
+
+
   Future<List<SongModel>> getAllSung()async{
    await _audioQueryRepo.requestPermission();
-    final result =await _audioQueryRepo.getAllSong();
-    return result;
-  }
-  bool playNow(int id){
-    if(currentState.value.playing && currentAudio?.value.id ==id)
-    {
-      return true;
-    }
-    return false;
-  }
-
-
-  void playOrPauseAudio(SongModel data)
-  {
-    if(currentState.value.playing )
-      {
-
-        if( currentAudio?.value.id == data.id)
-          {
-            _pauseAudio();
-            return;
-          }
-        _stopAudio();
-        _updateValue(data);
-        //_startAudio();
-        _playAudio();
-        return;
-      }
-    if(currentState.value.processingState
-    ==ProcessingState.ready
-        &&
-        currentAudio?.value.id == data.id)
-      {
-        print("SDADADADADADADADADADADA");
-        _resumeAudio();
-        return;
-      }
-
-    _updateValue(data);
-   _startAudio();
-    _playAudio();
-
+    listSongsModel =await _audioQueryRepo.getAllSong();
+    return listSongsModel;
   }
   void _updateValue(SongModel value)
   {
     currentAudio?.value = value;
   }
-  void _stopAudio()
-  {
-    _audioManagerRepo.stopAudio();
-  }
-  void _startAudio()
-  {
-    print("DSAAAAAAAAAAAAAAA");
-    _audioManagerRepo.startAudio(listSongs);
-  }
-  void _pauseAudio()
-  {
-    _audioManagerRepo.pauseAudio();
-  }
-  void _resumeAudio()
-  {
-    _audioManagerRepo.resumeAudio();
+
+  Future<List<SongModel>> getSongWithFilter(String text)async{
+    final result = await _audioQueryRepo.getSongWithFilter(text);
+    return result.toSongModel();
   }
 
-  void _playAudio()
+
+  Future<int> playe(String url)async
   {
-    _audioManagerRepo.playAudio();
+    return await _audioPlayersRepo.startAudio(url: url);
+  }
+  bool isPlayNow(int id){
+    if(StateAudio.value == PlayerState.PLAYING &&
+        currentAudio?.value.id ==id)
+    {
+      return true;
+    }
+    return false;
+  }
+  Future<int> stop()async
+  {
+    return await _audioPlayersRepo.stopAudio();
+  }
+  Future<int> pause()async
+  {
+    return await _audioPlayersRepo.pauseAudio();
+  }
+  Future<int> resume()async
+  {
+    return await _audioPlayersRepo.resumeAudio();
+  }
+  void playOrPause(SongModel data,int index)
+  {
+    indexCurrent = index;
+    if(StateAudio.value == PlayerState.PLAYING)
+    {
+      if(currentAudio!.value.id == data.id)
+      {
+        pause();
+        return;
+      }
+      stop();
+      _updateValue(data);
+      playe(data.data);
+      return;
+    }
+    if(StateAudio.value == PlayerState.PAUSED)
+    {
+      if(currentAudio!.value.id == data.id)
+      {
+        resume();
+        return;
+      }
+      _updateValue(data);
+      playe(data.data);
+      return;
+    }
+    _updateValue(data);
+    playe(data.data);
+
+
+  }
+  var StateAudio = Rx<PlayerState>(PlayerState.STOPPED);
+  void getStateAudio ()
+  {
+    _audioPlayersRepo.getStateAudio().listen((event) {
+      StateAudio.value = event;
+    });
+  }
+  void sinSeekToNext()
+  {
+    indexCurrent = indexCurrent+1;
+    print(indexCurrent);
+    final data = listSongsModel[indexCurrent];
+    playOrPause(data, indexCurrent);
+
+  }
+  void sinSeekToPrevious()
+  {
+    indexCurrent = indexCurrent-1;
+    print(indexCurrent);
+    final data = listSongsModel[indexCurrent];
+    playOrPause(data, indexCurrent);
   }
 
 

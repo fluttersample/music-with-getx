@@ -9,8 +9,8 @@ class HomeBinding extends Bindings {
   void dependencies() {
     Get.lazyPut<HomeViewModel>(
       () => HomeViewModel(
-        audioManagerRepo: sl(),
-        audioQueryRepo: sl()
+        audioQueryRepo: sl(),
+        audioPlayersRepo: sl()
       ),
     );
   }
