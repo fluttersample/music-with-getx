@@ -4,49 +4,73 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:music_player_getx/models/AudioModel.dart';
 
 import 'package:music_player_getx/repository/audio_players/AudioPlayersRepo.dart';
 import 'package:music_player_getx/repository/audio_query/AudioQueryRepo.dart';
+import 'package:music_player_getx/repository/audio_room/AudioRoomRep.dart';
+import 'package:music_player_getx/utils/Utils.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:audioplayers/audioplayers.dart' ;
+import 'package:on_audio_room/on_audio_room.dart';
 
 
 class HomeViewModel extends GetxController {
   final AudioQueryRepo _audioQueryRepo;
   final AudioPlayersRepo _audioPlayersRepo;
+  final AudioRoomRep _audioRoomRep;
   HomeViewModel({
-                required AudioQueryRepo audioQueryRepo,
-  required AudioPlayersRepo audioPlayersRepo}) :
+    required AudioQueryRepo audioQueryRepo,
+    required AudioPlayersRepo audioPlayersRepo,
+  required AudioRoomRep audioRoomRep}) :
     _audioQueryRepo = audioQueryRepo,
-  _audioPlayersRepo = audioPlayersRepo;
+  _audioPlayersRepo = audioPlayersRepo,
+  _audioRoomRep =audioRoomRep;
 
   final searchController = TextEditingController();
+
+  Rx<List<SongModel>> listSongsModel = Rx<List<SongModel>>([]);
+  int indexCurrent =0;
+
+  List<SongModel> get getValueListSongModel  =>listSongsModel.value;
+  set _setValueListSongModel (List<SongModel> data) =>
+      listSongsModel.value = data;
 
 
   @override
   void onInit() {
     super.onInit();
     getStateAudio();
-
+ //   getAllFavorites();
   }
-
+  RxList<AudioModel>? audioModel =  <AudioModel>[].obs;
   Rx<SongModel>? currentAudio = SongModel({}).obs;
 
 
+  Future<RxBool> statusIsLike(int key) async {
+    final bool z = await  _audioRoomRep.checkIn(RoomType.FAVORITES, key);
+    return Future.value(z.obs);
+  }
 
-  Rx<List<SongModel>> listSongsModel = Rx<List<SongModel>>([]);
-  int indexCurrent =0;
 
-  List<SongModel> get getValueListSongModel  =>listSongsModel.value;
-
-   set _setValueListSongModel (List<SongModel> data) =>
-       listSongsModel.value = data;
 
   Future<List<SongModel>> getAllSung()async{
    await _audioQueryRepo.requestPermission();
     _setValueListSongModel =await _audioQueryRepo.getAllSong();
+    for (var element in getValueListSongModel) {
+      final data = AudioModel(
+        data: element.data,
+        title: element.title,
+        id: element.id,
+        displayName: element.displayName,
+        isAddToFavorite: await statusIsLike(element.id)
+      );
+      audioModel?.add(data);
+      print(audioModel?.value);
+    }
     return getValueListSongModel;
   }
+
   void _updateValue(SongModel value)
   {
     currentAudio?.value = value;
@@ -58,7 +82,7 @@ class HomeViewModel extends GetxController {
   }
 
 
-  Future<int> playe(String url)async
+  Future<int> play(String url)async
   {
     return await _audioPlayersRepo.startAudio(url: url);
   }
@@ -94,7 +118,7 @@ class HomeViewModel extends GetxController {
       }
       stop();
       _updateValue(data);
-      playe(data.data);
+      play(data.data);
       return;
     }
     if(stateAudio.value == PlayerState.PAUSED)
@@ -105,11 +129,11 @@ class HomeViewModel extends GetxController {
         return;
       }
       _updateValue(data);
-      playe(data.data);
+      play(data.data);
       return;
     }
     _updateValue(data);
-    playe(data.data);
+    play(data.data);
 
 
   }
@@ -138,17 +162,8 @@ class HomeViewModel extends GetxController {
   }
   void sinSeekToNext()
   {
-    // if(indexCurrent == listSongsModel.length-1)
-    //   {
-    //     indexCurrent = 0;
-    //     final data = listSongsModel[indexCurrent];
-    //     playOrPause(data, indexCurrent);
-    //     return;
-    //   }
 
     indexCurrent = isLastItem() ? 0 :indexCurrent+1;
-    print('Index rrent : ' + indexCurrent.toString());
-    print(getValueListSongModel.length);
     final data = getValueListSongModel[indexCurrent];
     playOrPause(data, indexCurrent);
 
@@ -160,7 +175,6 @@ class HomeViewModel extends GetxController {
     final data = getValueListSongModel[indexCurrent];
     playOrPause(data, indexCurrent);
   }
-
   void searchInListAudio(String query)async
   {
     List<SongModel> _resultSearch = [];
@@ -170,7 +184,6 @@ class HomeViewModel extends GetxController {
         _setValueListSongModel =allAudio;
         return;
       }
-
         for (var element in allAudio) {
           if(element.title.contains(query) )
           {
@@ -181,6 +194,30 @@ class HomeViewModel extends GetxController {
 
   }
 
+  void addOrRemoveToPlayList({required AudioModel data,
+    required int index})async
+  {
+    final liked = await statusIsLike(data.id!);
+
+    if(liked.value == true)
+      {
+       removeFromFavoriteList(data.id!);
+       Utils.instance.showSuccess(message: 'Item Removed',
+       icon: Icons.favorite_border);
+       data.isAddToFavorite?.value = false;
+       return;
+      }
+    _audioRoomRep.addTo(RoomType.FAVORITES, data.toMap().toFavoritesEntity());
+  //  await fromFavorites(data.id);
+    data.isAddToFavorite!.value = true;
+    Utils.instance.showSuccess(message: 'Item add To Favorites');
+  }
+
+  void removeFromFavoriteList(int id)
+  {
+    _audioRoomRep.deleteFrom(RoomType.FAVORITES,
+        id);
+  }
 
 
 }

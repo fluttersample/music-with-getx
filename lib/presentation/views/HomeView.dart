@@ -1,13 +1,16 @@
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:get/get.dart';
+import 'package:music_player_getx/models/AudioModel.dart';
 import 'package:music_player_getx/presentation/controller/HomeViewModel.dart';
+import 'package:music_player_getx/presentation/views/PlayListView.dart';
+import 'package:music_player_getx/utils/Utils.dart';
 import 'package:music_player_getx/widgets/error_widget.dart';
 import 'package:music_player_getx/widgets/loading_widget.dart';
 import 'package:music_player_getx/widgets/not_found_data_widget.dart';
 import 'package:music_player_getx/widgets/resuable/animated_show_up.dart';
 import 'package:music_player_getx/widgets/resuable/animated_switcher_icon.dart';
 import 'package:music_player_getx/widgets/resuable/appbar_widget.dart';
-import 'package:music_player_getx/widgets/resuable/circle_button_neu.dart';
+import 'package:music_player_getx/widgets/resuable/current_audio.dart';
 import 'package:music_player_getx/widgets/resuable/elevation_button.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -23,24 +26,27 @@ class HomeView extends GetView<HomeViewModel> {
       builder: (_) => Scaffold(
           appBar: AppbarWidget(
             text: 'Evo Music',
-            showLeftBtn: false,
 
             onPressLeftBtn: () {
               print(controller.currentAudio?.value.getMap);
-
+              Utils.instance.showButtonSheet(
+                onTapItem0: (){},
+                onTapItem1: (){}
+              );
             },
             onPressRightBtn: () {
-              print("SAD");
+
+              Get.toNamed(PlayListView.id);
+            //  print(controller.currentAudio!.value.getMap);
             },
           ),
           bottomSheet: _buildBottomSheet(theme),
           body: Column(
-            children: [_buildSearchWidget(context,
-            controller), _buildBody(theme)],
+            children: [_buildSearchWidget(), _buildBody(theme)],
           )),
     );
   }
-  Widget _buildSearchWidget(BuildContext context,HomeViewModel controller) {
+  Widget _buildSearchWidget() {
     return Neumorphic(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 25),
       style: const NeumorphicStyle(
@@ -66,100 +72,32 @@ class HomeView extends GetView<HomeViewModel> {
                 ),
               )),
           onChanged: controller.searchInListAudio,
+
         ),
       ),
     );
+
   }
 
   Widget _buildBottomSheet(ThemeData theme) {
     return StreamBuilder<SongModel>(
       stream: controller.currentAudio?.stream,
       builder: (context, snapshot) {
-
         if (snapshot.hasData) {
           final data = snapshot.data;
-          return AnimatedShowUp(
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 500),
-              width: double.infinity,
-              height: 60,
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    right: 8.0,
-                left: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    SizedBox(
-                      width: 50,
-                      height: 50,
-                      child: QueryArtworkWidget(
-                        id: data!.id,
-                        artworkFit: BoxFit.cover,
-                        type: ArtworkType.AUDIO,
-                        errorBuilder: (_,ob,st){
-                          return const MyErrorWidget();
-                        },),),
-                    const SizedBox(
-                      width: 15,
-                    ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            data.title,
-                            style: theme.textTheme.subtitle1!.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            data.displayName,
-                            style: theme.textTheme.subtitle2!.copyWith(color: Colors.grey),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          )
-                        ],
-                      ),
-                    ),
-                 ElevationButtonWidget(
-                     onPress: (){
-                       controller.sinSeekToPrevious();
-                     },
-                     widget: const Icon(
-                       Icons.skip_previous_sharp
-                     )),
-
-                    ElevationButtonWidget(
-                      color: theme.primaryColorLight,
-                     onPress: (){
-                        controller.playOrPause(data,controller.indexCurrent);
-                     },
-                     widget: Obx(() => AnimatedSwitcherIcon(
-                             icFalse: Icons.play_arrow,
-                             colorFalseButton: theme.colorScheme.surface,
-                             colorTrueButton: theme.colorScheme.surface,
-                             icTrue: Icons.pause,
-                             condition: controller.isPlayNow(data.id)),
-                     ),
-                     ),
-                    ElevationButtonWidget(
-                     onPress: (){
-
-                      controller.sinSeekToNext();
-                     },
-                     widget: const Icon(
-                       Icons.skip_next_sharp
-                     )),
-
-                  ],
-                ),
-              ),
-            ),
-          );
+          return CurrentAudioWidget(
+              data: data!,
+              seekToPrevious: (){controller.sinSeekToPrevious();},
+              seekToNext: (){controller.sinSeekToNext();},
+              widget: Obx(() => AnimatedSwitcherIcon(
+                  icFalse: Icons.play_arrow,
+                  colorFalseButton: theme.colorScheme.surface,
+                  colorTrueButton: theme.colorScheme.surface,
+                  icTrue: Icons.pause,
+                  condition: controller.isPlayNow(data.id))),
+              playOrPause: (){
+                controller.playOrPause(data,controller.indexCurrent);
+              });
 
         }
 
@@ -186,7 +124,7 @@ class HomeView extends GetView<HomeViewModel> {
           }
           return Obx(
             () {
-              if(controller.getValueListSongModel.isEmpty)
+              if(controller.audioModel!.isEmpty)
                 {
                   return const NotFoundDataWidget();
                 }
@@ -201,9 +139,16 @@ class HomeView extends GetView<HomeViewModel> {
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12),
                 itemBuilder: (context, index) {
-                  final model = controller.getValueListSongModel[index];
-                  return _buildItemMusic(model, theme,
-                  index);
+
+                  final data = controller.audioModel![index];
+                  final dataSongModel = controller.getValueListSongModel[index];
+                  return _buildItemMusic(
+                    data: data,
+                    index: index,
+                    theme: theme,
+                    dataSongModel: dataSongModel
+
+                  );
                 });
             },
           );
@@ -212,9 +157,16 @@ class HomeView extends GetView<HomeViewModel> {
     );
   }
 
-  Widget _buildItemMusic(SongModel data, ThemeData theme, int index) {
+  Widget _buildItemMusic({
+    required AudioModel data,
+    required ThemeData theme,
+    required int index,
+    required SongModel dataSongModel
+   }) {
+
+
     return GestureDetector(
-      onTap: () => print(data.uri),
+      onTap: () => print(data.id),
       child: Column(
         children: [
           AspectRatio(
@@ -225,7 +177,7 @@ class HomeView extends GetView<HomeViewModel> {
                 fit: StackFit.expand,
                 children: [
                   QueryArtworkWidget(
-                    id: data.id,
+                    id: data.id!,
                     artworkFit: BoxFit.fill,
                     artworkBorder: BorderRadius.circular(0),
                     type: ArtworkType.AUDIO,
@@ -236,8 +188,12 @@ class HomeView extends GetView<HomeViewModel> {
                       color: theme.primaryColorLight.withOpacity(0.5),
                         child: MyErrorWidget(size: 45,)),
                   ),
-                  _buildPlaySound(data,index),
+                  _buildPlaySound(dataSongModel,index),
 
+                  _buildBtnPlayList(
+                    index: index,
+                    data: data
+                  )
                 ],
               ),
             ),
@@ -251,7 +207,7 @@ class HomeView extends GetView<HomeViewModel> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  data.title,
+                  data.title!,
                   style: theme.textTheme.subtitle1!.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -259,10 +215,10 @@ class HomeView extends GetView<HomeViewModel> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  data.displayName,
+                  data.displayName!,
                   style: theme.textTheme.subtitle2!.copyWith(color: Colors.grey).
                   copyWith(
-                    fontSize: 13
+                    fontSize: 12
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -280,26 +236,69 @@ class HomeView extends GetView<HomeViewModel> {
   Widget _buildPlaySound(SongModel data,int index) {
     return Positioned(
       bottom: 15,
-      right: 4,
-      child: CircleButtonNeu(
-        color: Colors.white,
-        onPress: () {
-          // controller.playOrPauseAudio(data,index);
+      right: 12,
+      child: InkWell(
+        onTap: (){
           controller.playOrPause(data,index);
+
         },
-        child: Obx(() => AnimatedSwitcherIcon(
-                icFalse: Icons.play_arrow,
-                icTrue: Icons.pause,
-                condition: controller.isPlayNow(data.id)),
+        child: Container(
+          height: 35,
+          width: 35,
+
+          decoration: BoxDecoration(
+              color: Colors.white,
+            borderRadius: BorderRadius.circular(30)
+          ),
+          child: Obx(() => AnimatedSwitcherIcon(
+                  icFalse: Icons.play_arrow,
+                  icTrue: Icons.pause,
+                  condition: controller.isPlayNow(data.id)),
+          ),
+
         ),
-        depth: 0,
       ),
     );
   }
-  void openPopupMenu()
-  {
 
+  Widget _buildBtnPlayList({
+    required AudioModel data,
+    required int index,
+  })
+  {
+    return Positioned(
+      left: 0,
+      top: 0,
+      child: IconButton(
+        splashRadius: 15,
+          iconSize: 15,
+          onPressed: (){
+           controller.addOrRemoveToPlayList(
+             data: data,
+             index: index,
+           );
+          },
+           icon: Obx(
+                 () {
+               if(data.isAddToFavorite!.value)
+               {
+                 return const Icon(Icons.favorite,
+                   color: Colors.red,
+                 );
+               }
+               return const Icon(Icons.favorite_border,
+                 color: Colors.white,
+               );
+             },
+           )
+           //const Icon(Icons.favorite_border,
+          //   color: Colors.white,
+          // )
+
+      ),
+    );
   }
+
 }
 
 

@@ -13,6 +13,7 @@ class AppbarWidget extends StatelessWidget
   final IconData iconRight;
   final void Function()? onPressLeftBtn;
   final void Function()? onPressRightBtn;
+  final double height;
   const AppbarWidget(
   {Key? key,
   required this.text,
@@ -23,6 +24,7 @@ class AppbarWidget extends StatelessWidget
   this.iconLeft = Icons.filter_list_alt,
   this.iconRight = Icons.favorite,
   this.onPressRightBtn,
+  this.height=90,
   this.onPressLeftBtn,
   })
 
@@ -35,7 +37,7 @@ class AppbarWidget extends StatelessWidget
       elevation: elevation,
       color: theme.primaryColor,
       child: SizedBox(
-        height: 90,
+        height: height,
 
         child: Container(
           margin: EdgeInsets.only(left: 12,
@@ -45,40 +47,16 @@ class AppbarWidget extends StatelessWidget
 
             children: [
 
-              showLeftBtn?CircleButtonNeu(
-                  onPress: onPressLeftBtn!,
-                  child: Icon(
-                    iconLeft,
-                    size: 20,
-                    color: Colors.grey.shade800,
-                  ),) : SizedBox(
-                height: 45,
-                    width: 45,
-                    child: CircleButtonNeu(
-                    onPress: () {
-
-                    },
-                    child:  PopupMenuButton(
-                      onSelected: (index){
-                        print(index);
-                      },
-                      initialValue: 0,
-
-                      itemBuilder: (context) => [
-                        PopupMenuItem(child: Row(
-                          children: [
-                            Icon(Icons.vertical_align_bottom_sharp),
-                            Text('Vertical')
-                          ],
-                        )),
-                        PopupMenuItem(child: Row(
-                          children: [
-                            Icon(Icons.horizontal_split_sharp),
-                            Text('Horizontal')
-                          ],
-                        )),
-                      ],)),
-                  ),
+              Visibility(
+                visible: showLeftBtn,
+                child: CircleButtonNeu(
+                    onPress: onPressLeftBtn,
+                    child: Icon(
+                      iconLeft,
+                      size: 20,
+                      color: Colors.grey.shade800,
+                    ),),
+              ),
 
               const Spacer(),
               Text(text,
@@ -88,14 +66,17 @@ class AppbarWidget extends StatelessWidget
                 color: theme.primaryColorLight
               )),
               const Spacer(),
-              if(showRightBtn)
-              CircleButtonNeu(
-                  onPress: onPressRightBtn!,
-                  child: Icon(
-                    iconRight,
-                    size: 18,
-                    color: Colors.grey.shade800,
-                  ),)
+
+              Visibility(
+                visible: showRightBtn,
+                child: CircleButtonNeu(
+                    onPress: onPressRightBtn,
+                    child: Icon(
+                      iconRight,
+                      size: 18,
+                      color: Colors.grey.shade800,
+                    ),),
+              )
 
 
             ],

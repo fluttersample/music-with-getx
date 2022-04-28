@@ -5,10 +5,12 @@ import 'package:music_player_getx/core/theme/AppThemeDark.dart';
 import 'package:music_player_getx/core/theme/AppThemeLight.dart';
 import 'package:music_player_getx/injection_container.dart';
 import 'package:music_player_getx/presentation/views/SplashView.dart';
+import 'package:on_audio_room/on_audio_room.dart';
 
 
-void main() {
+void main() async{
   init();
+  await OnAudioRoom().initRoom(RoomType.FAVORITES);
   runApp(const MyApp());
 }
 

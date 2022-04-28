@@ -3,7 +3,7 @@ import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
 class CircleButtonNeu extends StatelessWidget {
   final double depth;
-  final void Function() onPress;
+  final void Function()? onPress;
   final Widget child;
   final Color? color;
   // final NeumorphicBoxShape shape;

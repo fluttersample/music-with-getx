@@ -13,6 +13,7 @@ class AudioQueryImp extends AudioQueryRepo
 
   @override
   Future<List<SongModel>> getAllSong() async{
+
     return await _audioQuery.querySongs(
         sortType: SongSortType.DISPLAY_NAME,
       
@@ -57,6 +58,30 @@ class AudioQueryImp extends AudioQueryRepo
   Future<List<SongModel>> getSongWithWhere(Object where) async{
     return  await _audioQuery.queryAudiosFrom(AudiosFromType.ARTIST, where);
 
+  }
+
+  @override
+  Future<bool> addToPlayList(int playListId, int audioId) async{
+    return  await _audioQuery.addToPlaylist(playListId, audioId);
+
+  }
+
+  @override
+  Future<List<PlaylistModel>> getPlayList() async{
+
+    return await  _audioQuery.queryPlaylists();
+
+  }
+
+  @override
+  Future<bool> remoteToPlayList(int playListId, int audioId) async{
+    return await _audioQuery.removeFromPlaylist(playListId, audioId);
+
+  }
+
+  @override
+  Future createPlayList() async{
+    return  await _audioQuery.createPlaylist('Favorites',);
   }
 
 

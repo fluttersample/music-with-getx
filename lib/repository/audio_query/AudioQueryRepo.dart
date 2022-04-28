@@ -22,5 +22,13 @@ abstract class AudioQueryRepo{
 
   Future<List<SongModel>> getSongWithWhere(Object where);
 
+  Future<bool> addToPlayList(int playListId , int audioId);
+
+  Future<bool> remoteToPlayList(int playListId , int audioId);
+
+  Future<List<PlaylistModel>> getPlayList();
+
+  Future createPlayList();
+
 
 }
