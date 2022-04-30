@@ -29,20 +29,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
 #    Audio Manager
   audioplayers: ^0.20.1
-#  Get All Song From Storage
   on_audio_query: ^2.6.0
+  on_audio_room: ^2.2.1+1
+
 #  Dependencies Injection
   get_it: ^7.2.0
+
 #  State Manager
   get: ^4.6.1
+
 #  Ui
   flutter_neumorphic: ^3.2.0
   cupertino_icons: ^1.0.2
   google_fonts: ^2.3.1
+  flutter_staggered_animations: ^1.0.0
 
-  on_audio_room: ^2.2.1+1
 
 
 

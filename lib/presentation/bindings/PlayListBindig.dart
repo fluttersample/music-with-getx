@@ -9,7 +9,7 @@ class PlayListBinding extends Bindings
   @override
   void dependencies() {
     Get.lazyPut<PlayListController>(() => PlayListController(
-      audioRoomRep: sl()
+      audioRoomRep: sl(), audioPlayersRepo: sl()
     ));
   }
 

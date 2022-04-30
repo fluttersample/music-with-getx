@@ -43,7 +43,8 @@ class Utils {
     );
   }
 
-   void showButtonSheet({ Function()? onTapItem0,Function()? onTapItem1 })
+   void showButtonSheet({ Function()? onTapItem0,Function()? onTapItem1,
+   bool isGridView = true})
   {
     Get.bottomSheet(
       Builder(
@@ -68,24 +69,31 @@ class Utils {
               ),
               ListTile(
               onTap: onTapItem0,
-                leading: Icon(Icons.list),
+                leading: const Icon(Icons.list),
                 minLeadingWidth: 0,
-                iconColor: Theme.of(context).primaryColorLight,
-                title: Text('Vertical List',
+                title: const Text('Vertical View',
                 ),
-
                 style: ListTileStyle.drawer,
+                minVerticalPadding: 0,
+                dense: true,
+                selected: !isGridView,
+                selectedTileColor: Colors.grey.
+                withOpacity(0.5),
+                selectedColor: Colors.blue,
 
               ),
               ListTile(
                 onTap: onTapItem1,
                 minLeadingWidth: 0,
-                leading: Icon(Icons.grid_view,
+                leading: const Icon(Icons.grid_view,
                 size: 21),
-                iconColor: Theme.of(context).primaryColorLight,
-
+                dense: true,
+                selected: isGridView,
                 style: ListTileStyle.drawer,
-                title: Text('Grid List'),
+                title: const Text('Grid View'),
+                selectedTileColor: Colors.grey.
+                withOpacity(0.5),
+                selectedColor: Colors.blue,
               )
             ],
           ),

@@ -3,22 +3,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/get_state_manager.dart';
+import 'package:music_player_getx/models/AudioModel.dart';
 import 'package:music_player_getx/widgets/error_widget.dart';
 import 'package:music_player_getx/widgets/null_art_work.dart';
 import 'package:music_player_getx/widgets/resuable/animated_show_up.dart';
 import 'package:music_player_getx/widgets/resuable/animated_switcher_icon.dart';
 import 'package:music_player_getx/widgets/resuable/elevation_button.dart';
 import 'package:on_audio_query/on_audio_query.dart';
+import 'package:on_audio_room/details/rooms/favorites/favorites_entity.dart';
 class CurrentAudioWidget<T> extends StatelessWidget {
 
   final void Function() seekToPrevious;
   final void Function() seekToNext;
   final void Function() playOrPause;
-  final SongModel data;
+  final AudioModel? data;
+  final FavoritesEntity? dataFav;
   final Widget widget;
   const CurrentAudioWidget({
     Key? key,
-    required this.data,
+    this.dataFav,
+    this.data,
     required this.seekToPrevious,
     required this.widget,
     required this.seekToNext,
@@ -43,7 +47,7 @@ class CurrentAudioWidget<T> extends StatelessWidget {
                 width: 50,
                 height: 50,
                 child: QueryArtworkWidget(
-                  id: data.id,
+                  id: data?.id ?? dataFav!.id,
                   artworkFit: BoxFit.cover,
                   type: ArtworkType.AUDIO,
                   nullArtworkWidget: const NullArtWorkWidget(),
@@ -59,7 +63,7 @@ class CurrentAudioWidget<T> extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      data.title,
+                      data?.title?? dataFav!.title,
                       style: theme.textTheme.subtitle1!.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -67,7 +71,7 @@ class CurrentAudioWidget<T> extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      data.displayName,
+                      data?.displayName ?? dataFav!.displayName!,
                       style: theme.textTheme.subtitle2!.copyWith(color: Colors.grey),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
