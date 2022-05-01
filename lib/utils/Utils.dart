@@ -2,13 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:get/get.dart';
+import 'package:music_player_getx/models/AudioModel.dart';
+import 'package:music_player_getx/widgets/resuable/current_audio.dart';
 
 class Utils {
 
-  Utils._();
-
-  static final Utils instance = Utils._();
-
+ static OverlayEntry? _entry;
+ static OverlayState? overlayState;
   parseToMinutesSeconds(int ms) {
     String data;
     Duration duration = Duration(milliseconds: ms);
@@ -23,7 +23,7 @@ class Utils {
     return data;
   }
 
-   void showSuccess({required String message,
+  static void showSuccess({required String message,
    IconData icon= Icons.favorite}) {
     Get.rawSnackbar(
       duration: const Duration(milliseconds:1000 ),
@@ -43,7 +43,7 @@ class Utils {
     );
   }
 
-   void showButtonSheet({ Function()? onTapItem0,Function()? onTapItem1,
+  static void showButtonSheet({ Function()? onTapItem0,Function()? onTapItem1,
    bool isGridView = true})
   {
     Get.bottomSheet(
@@ -108,5 +108,32 @@ class Utils {
     );
   }
 
+  static void  showOverLay(
+      { required BuildContext context,
+         required Widget widget})
+  {
+    final size = MediaQuery.of(context).size;
+    overlayState = Overlay.of(context);
+    _entry = OverlayEntry(
+      builder: (context) => Positioned(
+        width: size.width,
+        height: 60,
+       bottom: 0,
+        child: widget
+      ),);
+
+    overlayState?.insert(_entry!);
+
+  }
+
+  static void removeOverLay()
+  {
+    _entry?.remove();
+  }
+
+  static void unHideOverLay()
+  {
+    overlayState?.insert(_entry!);
+  }
 
 }

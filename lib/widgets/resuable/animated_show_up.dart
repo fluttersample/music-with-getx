@@ -18,11 +18,11 @@ class _AnimatedShowUpState extends State<AnimatedShowUp>
     super.initState();
     _animController =
         AnimationController(vsync: this, duration: const
-        Duration(milliseconds:300));
+        Duration(milliseconds:200));
     final curve =
     CurvedAnimation(curve: Curves.decelerate, parent: _animController);
     _animOffset =
-        Tween<Offset>(begin: const Offset(0.0, 0.35), end: Offset.zero)
+        Tween<Offset>(begin: const Offset(0.0, 0.10), end: Offset.zero)
             .animate(curve);
 
     _animController.forward();

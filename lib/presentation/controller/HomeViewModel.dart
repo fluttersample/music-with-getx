@@ -29,14 +29,17 @@ class HomeViewModel extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
     getStateAudio();
+
+
   }
 
   /// Variables
   int indexCurrent =0;
   Rx<bool> isGridView = true.obs;
   final searchController = TextEditingController();
-  Rx<AudioModel>? currentAudioTest = const AudioModel().obs;
+  Rx<AudioModel?>? currentAudio = const AudioModel().obs;
   RxList<AudioModel>? audioModel =  <AudioModel>[].obs;
   var stateAudio = Rx<PlayerState>(PlayerState.STOPPED);
 
@@ -50,6 +53,7 @@ class HomeViewModel extends GetxController {
   Future<List<AudioModel?>?> getAllSung()async{
     await _audioQueryRepo.requestPermission();
     final result  =await _audioQueryRepo.getAllSong();
+    audioModel?.clear();
     for (var element in result) {
       final data = AudioModel(
           data: element.data,
@@ -58,6 +62,7 @@ class HomeViewModel extends GetxController {
           displayName: element.displayName,
           isAddToFavorite: await statusIsLike(element.id)
       );
+
       audioModel?.add(data);
     }
     return audioModel;
@@ -76,8 +81,9 @@ class HomeViewModel extends GetxController {
     return await _audioPlayersRepo.startAudio(url: url);
   }
   bool isPlayNow(int id){
-    if(stateAudio.value == PlayerState.PLAYING &&
-    currentAudioTest?.value.id ==id )
+    if(
+     currentAudio?.value?.id ==id &&
+        stateAudio.value == PlayerState.PLAYING)
     {
       return true;
     }
@@ -100,28 +106,28 @@ class HomeViewModel extends GetxController {
     indexCurrent = index;
     if(stateAudio.value == PlayerState.PLAYING)
     {
-      if(currentAudioTest!.value.id == data.id)
+      if(currentAudio!.value?.id == data.id)
       {
         pause();
         return;
       }
       stop();
-      _updateValue(data);
+      updateValue(data);
       play(data.data!);
       return;
     }
     if(stateAudio.value == PlayerState.PAUSED)
     {
-      if(currentAudioTest!.value.id == data.id)
+      if(currentAudio!.value?.id == data.id)
       {
         resume();
         return;
       }
-      _updateValue(data);
+      updateValue(data);
       play(data.data!);
       return;
     }
-    _updateValue(data);
+    updateValue(data);
     play(data.data!);
 
 
@@ -148,16 +154,18 @@ class HomeViewModel extends GetxController {
       }
     return false;
   }
-  void sinSeekToNext()
+  void seekToNext()
   {
+    print(indexCurrent);
     indexCurrent = isLastItem(
         index: indexCurrent,
         length: audioModel!.length) ? 0 :indexCurrent+1;
+    print(indexCurrent);
     final data = audioModel![indexCurrent];
     playOrPause(data, indexCurrent);
 
   }
-  void sinSeekToPrevious()
+  void seekToPrevious()
   {
     indexCurrent = isFirstItem(indexCurrent)? audioModel!.length-1 : indexCurrent-1;
     print(indexCurrent);
@@ -191,7 +199,7 @@ class HomeViewModel extends GetxController {
     if(liked.value == true)
       {
        removeFromFavoriteList(data.id!);
-       Utils.instance.showSuccess(message: 'Item Removed',
+       Utils.showSuccess(message: 'Item Removed',
        icon: Icons.favorite_border);
        data.isAddToFavorite?.value = false;
        return;
@@ -199,7 +207,7 @@ class HomeViewModel extends GetxController {
     _audioRoomRep.addTo(RoomType.FAVORITES, data.toMap().toFavoritesEntity());
   //  await fromFavorites(data.id);
     data.isAddToFavorite!.value = true;
-    Utils.instance.showSuccess(message: 'Item add To Favorites');
+    Utils.showSuccess(message: 'Item add To Favorites');
   }
 
   void removeFromFavoriteList(int id)
@@ -213,6 +221,7 @@ class HomeViewModel extends GetxController {
    if(value == true)
      {
      Get.back();
+     Utils.unHideOverLay();
      Future.delayed(const
      Duration(milliseconds: 100),(){
        isGridView(true);
@@ -222,6 +231,8 @@ class HomeViewModel extends GetxController {
 
      }else {
      Get.back();
+     Utils.unHideOverLay();
+
      Future.delayed(
          const Duration(milliseconds: 100),()
      {
@@ -235,8 +246,8 @@ class HomeViewModel extends GetxController {
 
 
   /// Private Methods
-  void _updateValue(AudioModel value)
+  void updateValue(AudioModel value)
   {
-    currentAudioTest?.value = value;
+    currentAudio?.value = value;
   }
 }

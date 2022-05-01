@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
@@ -21,15 +22,41 @@ class HomeView extends GetView<HomeViewModel> {
 
   @override
   Widget build(BuildContext context) {
+
     final theme = Theme.of(context);
     return GetBuilder(
       init: controller,
-      builder: (_) => Scaffold(
+      builder: (_) {
+        controller.currentAudio?.listen((data) {
+          if(data !=null)
+            {
+              Utils.removeOverLay();
+            }
+          Utils.showOverLay(
+              context: context,
+              widget:  CurrentAudioWidget(
+                  data: data!,
+                  seekToPrevious: (){controller.seekToPrevious();},
+                  seekToNext: (){controller.seekToNext();},
+                  widget: Obx(() => AnimatedSwitcherIcon(
+                      icFalse: Icons.play_arrow,
+                      colorFalseButton: theme.colorScheme.surface,
+                      colorTrueButton: theme.colorScheme.surface,
+                      icTrue: Icons.pause,
+                      condition: controller.isPlayNow(data.id!))),
+                  playOrPause: (){
+                    controller.playOrPause(data,controller.indexCurrent);
+                  })
+          );
+
+        });
+        return Scaffold(
           appBar: AppbarWidget(
             text: 'Evo Music',
 
             onPressLeftBtn: () {
-              Utils.instance.showButtonSheet(
+              Utils.removeOverLay();
+              Utils.showButtonSheet(
                 onTapItem0: (){
                   controller.changeToGridView(false);
                 },
@@ -45,10 +72,13 @@ class HomeView extends GetView<HomeViewModel> {
             //  print(controller.currentAudio!.value.getMap);
             },
           ),
-          bottomSheet: _buildBottomSheet(theme),
+         // bottomSheet: _buildBottomSheet(theme),
           body: Column(
-            children: [_buildSearchWidget(), _buildBody(theme)],
-          )),
+            children: [
+              // _buildSearchWidget(),
+              _buildBody(theme)],
+          ));
+      },
     );
   }
 
@@ -78,8 +108,9 @@ class HomeView extends GetView<HomeViewModel> {
     return  AnimationLimiter(
       child: GridView.builder(
           physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 6)
-              +const EdgeInsets.only(bottom: 50),
+          padding: const EdgeInsets.only(bottom: 65,
+          right: 15,
+          left: 15,top: 20),
           itemCount: controller.audioModel!.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
@@ -105,7 +136,7 @@ class HomeView extends GetView<HomeViewModel> {
         padding: const EdgeInsets.symmetric(
             horizontal: 15,
             vertical: 10
-        ),
+        )+const EdgeInsets.only(bottom: 70),
         itemBuilder: (context, index) {
           final data = controller.audioModel![index];
           return _buildItem(
@@ -216,14 +247,14 @@ class HomeView extends GetView<HomeViewModel> {
 
   Widget _buildBottomSheet(ThemeData theme) {
     return StreamBuilder<AudioModel?>(
-      stream: controller.currentAudioTest?.stream,
+      stream: controller.currentAudio?.stream,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final data = snapshot.data;
           return CurrentAudioWidget(
               data: data!,
-              seekToPrevious: (){controller.sinSeekToPrevious();},
-              seekToNext: (){controller.sinSeekToNext();},
+              seekToPrevious: (){controller.seekToPrevious();},
+              seekToNext: (){controller.seekToNext();},
               widget: Obx(() => AnimatedSwitcherIcon(
                   icFalse: Icons.play_arrow,
                   colorFalseButton: theme.colorScheme.surface,
@@ -274,7 +305,7 @@ class HomeView extends GetView<HomeViewModel> {
                           },
                         nullArtworkWidget: Container(
                           color: theme.primaryColorLight.withOpacity(0.5),
-                            child: MyErrorWidget(size: 45,)),
+                            child: const MyErrorWidget(size: 45,)),
                       ),
                       _buildPlaySound(data,index),
 
@@ -388,6 +419,9 @@ class HomeView extends GetView<HomeViewModel> {
       ),
     );
   }
+
+
+
 
 
 

@@ -1,5 +1,6 @@
 
 
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:music_player_getx/presentation/bindings/PlayListBindig.dart';
 import 'package:music_player_getx/presentation/bindings/home_binding.dart';
@@ -17,19 +18,21 @@ class AppPage {
         page:()=> const HomeView(),
       binding: HomeBinding(),
       title: 'Music Player',
-      transition: Transition.leftToRightWithFade,
+        transition: Transition.fade
 
     ),
     GetPage(
         name: SplashView.id,
         page: ()=>const SplashView(),
-     title: 'Hello',
      binding: SplashBinding(),
+        transition: Transition.fade
+
     ) ,
     GetPage(
         name: PlayListView.id,
-        page: ()=>const PlayListView(),
+      page: ()=>const PlayListView(),
      binding: PlayListBinding(),
+        transition: Transition.fade
     )
 
   ];

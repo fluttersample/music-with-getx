@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
       theme: AppThemeLight.instance.theme,
 
       initialRoute: SplashView.id,
+
       getPages: AppPage.routes,
     );
   }
