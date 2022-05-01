@@ -2,7 +2,7 @@
 
 
 import 'package:audioplayers/audioplayers.dart';
-import 'package:music_player_getx/repository/audio_players/AudioPlayersRepo.dart';
+import 'package:music_player_getx/repository/audio_players/audio_players_repo.dart';
 
 class AudioPlayersImp extends AudioPlayersRepo
 {

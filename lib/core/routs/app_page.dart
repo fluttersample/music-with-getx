@@ -2,12 +2,12 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:music_player_getx/presentation/bindings/PlayListBindig.dart';
+import 'package:music_player_getx/presentation/bindings/play_list_bindig.dart';
 import 'package:music_player_getx/presentation/bindings/home_binding.dart';
 import 'package:music_player_getx/presentation/bindings/splash_binding.dart';
-import 'package:music_player_getx/presentation/views/HomeView.dart';
-import 'package:music_player_getx/presentation/views/PlayListView.dart';
-import 'package:music_player_getx/presentation/views/SplashView.dart';
+import 'package:music_player_getx/presentation/views/home_view.dart';
+import 'package:music_player_getx/presentation/views/play_list_view.dart';
+import 'package:music_player_getx/presentation/views/splash_view.dart';
 
 class AppPage {
 

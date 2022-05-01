@@ -2,11 +2,10 @@
 
 import 'package:audioplayers/audioplayers_api.dart';
 import 'package:get/get.dart';
-import 'package:music_player_getx/models/AudioModel.dart';
-import 'package:music_player_getx/presentation/controller/HomeViewModel.dart';
-import 'package:music_player_getx/repository/audio_players/AudioPlayersRepo.dart';
-import 'package:music_player_getx/repository/audio_room/AudioRoomRep.dart';
-import 'package:on_audio_room/on_audio_room.dart';
+import 'package:music_player_getx/models/audio_model.dart';
+import 'package:music_player_getx/presentation/controller/home_controller.dart';
+import 'package:music_player_getx/repository/audio_players/audio_players_repo.dart';
+import 'package:music_player_getx/repository/audio_room/audio_room_repo.dart';
 
 
 class PlayListController extends GetxController

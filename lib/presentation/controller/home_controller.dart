@@ -4,17 +4,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:music_player_getx/models/AudioModel.dart';
-import 'package:music_player_getx/repository/audio_players/AudioPlayersRepo.dart';
-import 'package:music_player_getx/repository/audio_query/AudioQueryRepo.dart';
-import 'package:music_player_getx/repository/audio_room/AudioRoomRep.dart';
+import 'package:music_player_getx/models/audio_model.dart';
+import 'package:music_player_getx/repository/audio_players/audio_players_repo.dart';
+import 'package:music_player_getx/repository/audio_query/audio_query_repo.dart';
+import 'package:music_player_getx/repository/audio_room/audio_room_repo.dart';
 import 'package:music_player_getx/utils/Utils.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 import 'package:audioplayers/audioplayers.dart' ;
 import 'package:on_audio_room/on_audio_room.dart';
 
 
-class HomeViewModel extends GetxController {
+class HomeViewModel extends GetxController with GetSingleTickerProviderStateMixin{
   final AudioQueryRepo _audioQueryRepo;
   final AudioPlayersRepo _audioPlayersRepo;
   final AudioRoomRep _audioRoomRep;
@@ -25,14 +25,17 @@ class HomeViewModel extends GetxController {
     _audioQueryRepo = audioQueryRepo,
   _audioPlayersRepo = audioPlayersRepo,
   _audioRoomRep =audioRoomRep;
+  late AnimationController animationController;
 
   @override
   void onInit() {
     super.onInit();
-
-    getStateAudio();
-
-
+    _audioPlayersRepo.getStateAudio().listen((event) {
+      stateAudio.value = event;
+    });
+    animationController =AnimationController(
+        duration: const Duration(milliseconds: 10000),
+        vsync: this);
   }
 
   /// Variables
@@ -42,15 +45,10 @@ class HomeViewModel extends GetxController {
   Rx<AudioModel?>? currentAudio = const AudioModel().obs;
   RxList<AudioModel>? audioModel =  <AudioModel>[].obs;
   var stateAudio = Rx<PlayerState>(PlayerState.STOPPED);
-
-
-
-
-
-
+  List<AudioModel?>? listFav = [];
 
   /// Methods
-  Future<List<AudioModel?>?> getAllSung()async{
+  Future<List<AudioModel>?> getAllSung()async{
     await _audioQueryRepo.requestPermission();
     final result  =await _audioQueryRepo.getAllSong();
     audioModel?.clear();
@@ -60,26 +58,21 @@ class HomeViewModel extends GetxController {
           title: element.title,
           id: element.id,
           displayName: element.displayName,
-          isAddToFavorite: await statusIsLike(element.id)
+          isAddToFavorite: await _statusIsLike(element.id)
       );
 
       audioModel?.add(data);
     }
     return audioModel;
   }
-  Future<RxBool> statusIsLike(int key) async {
-    final bool z = await  _audioRoomRep.checkIn(RoomType.FAVORITES, key);
-    return Future.value(z.obs);
-  }
+
+
   Future<List<SongModel>> getSongWithFilter(String text)async
   {
     final result = await _audioQueryRepo.getSongWithFilter(text);
     return result.toSongModel();
   }
-  Future<int> play(String url)async
-  {
-    return await _audioPlayersRepo.startAudio(url: url);
-  }
+
   bool isPlayNow(int id){
     if(
      currentAudio?.value?.id ==id &&
@@ -89,18 +82,7 @@ class HomeViewModel extends GetxController {
     }
     return false;
   }
-  Future<int> stop()async
-  {
-    return await _audioPlayersRepo.stopAudio();
-  }
-  Future<int> pause()async
-  {
-    return await _audioPlayersRepo.pauseAudio();
-  }
-  Future<int> resume()async
-  {
-    return await _audioPlayersRepo.resumeAudio();
-  }
+
   void playOrPause(AudioModel data,int index)
   {
     indexCurrent = index;
@@ -108,36 +90,34 @@ class HomeViewModel extends GetxController {
     {
       if(currentAudio!.value?.id == data.id)
       {
-        pause();
+        _pause();
+        animationController.stop();
         return;
       }
-      stop();
+      _stop();
       updateValue(data);
-      play(data.data!);
+      _play(data.data!);
       return;
     }
     if(stateAudio.value == PlayerState.PAUSED)
     {
       if(currentAudio!.value?.id == data.id)
       {
-        resume();
+        _resume();
+        animationController.repeat();
         return;
       }
       updateValue(data);
-      play(data.data!);
+      _play(data.data!);
       return;
     }
+    animationController.repeat();
     updateValue(data);
-    play(data.data!);
+    _play(data.data!);
 
 
   }
-  void getStateAudio ()
-  {
-    _audioPlayersRepo.getStateAudio().listen((event) {
-      stateAudio.value = event;
-    });
-  }
+
   bool isLastItem({required int index,required int length})
   {
     if(index == length-1){
@@ -156,45 +136,64 @@ class HomeViewModel extends GetxController {
   }
   void seekToNext()
   {
-    print(indexCurrent);
+    if(listFav!.isNotEmpty){
+      indexCurrent = isLastItem(
+          index: indexCurrent,
+          length: listFav!.length) ? 0 :indexCurrent+1;
+      final data = listFav![indexCurrent];
+      playOrPause(data!, indexCurrent);
+      return;
+    }
     indexCurrent = isLastItem(
         index: indexCurrent,
         length: audioModel!.length) ? 0 :indexCurrent+1;
-    print(indexCurrent);
+
     final data = audioModel![indexCurrent];
     playOrPause(data, indexCurrent);
 
   }
   void seekToPrevious()
   {
+    if(listFav!.isNotEmpty){
+      indexCurrent = isFirstItem(indexCurrent)? listFav!.length-1 : indexCurrent-1;
+      final data = listFav![indexCurrent];
+      playOrPause(data!, indexCurrent);
+      return;
+    }
     indexCurrent = isFirstItem(indexCurrent)? audioModel!.length-1 : indexCurrent-1;
     print(indexCurrent);
     final data = audioModel![indexCurrent];
     playOrPause(data, indexCurrent);
   }
+
   // void searchInListAudio(String query)async
   // {
-  //   List<SongModel> _resultSearch = [];
-  //   List<SongModel> allAudio=await getAllSung();
-  //   if(query.isEmpty)
+  //   List<AudioModel> _resultSearch = [];
+  //   final allAudio=await getAllSung();
+  //   _resultSearch.addAll(allAudio!);
+  //   if(query.isNotEmpty)
   //     {
-  //       audioModel =allAudio;
-  //       return;
-  //     }
-  //       for (var element in allAudio) {
-  //         if(element.title.contains(query) )
+  //       List<AudioModel> _dummyListData = [];
+  //       for (var element in _resultSearch) {
+  //         if(element.title!.contains(query))
   //         {
-  //           _resultSearch.add(element);
+  //           _dummyListData.add(element);
   //         }
   //       }
-  //       _setValueListSongModel =_resultSearch;
+  //       audioModel?.clear();
+  //       audioModel?.addAll(_dummyListData);
+  //       update();
+  //     }else{
+  //     audioModel?.clear();
+  //     audioModel?.addAll(allAudio);
+  //   }
   //
   // }
 
   void addOrRemoveToPlayList({required AudioModel data,
     required int index})async
   {
-    final liked = await statusIsLike(data.id!);
+    final liked = await _statusIsLike(data.id!);
 
     if(liked.value == true)
       {
@@ -249,5 +248,25 @@ class HomeViewModel extends GetxController {
   void updateValue(AudioModel value)
   {
     currentAudio?.value = value;
+  }
+  Future<int> _stop()async
+  {
+    return await _audioPlayersRepo.stopAudio();
+  }
+  Future<int> _pause()async
+  {
+    return await _audioPlayersRepo.pauseAudio();
+  }
+  Future<int> _resume()async
+  {
+    return await _audioPlayersRepo.resumeAudio();
+  }
+  Future<RxBool> _statusIsLike(int key) async {
+    final bool z = await  _audioRoomRep.checkIn(RoomType.FAVORITES, key);
+    return Future.value(z.obs);
+  }
+  Future<int> _play(String url)async
+  {
+    return await _audioPlayersRepo.startAudio(url: url);
   }
 }

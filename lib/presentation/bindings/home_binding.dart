@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:music_player_getx/injection_container.dart';
-import 'package:music_player_getx/presentation/controller/HomeViewModel.dart';
+import 'package:music_player_getx/presentation/controller/home_controller.dart';
 
 
 

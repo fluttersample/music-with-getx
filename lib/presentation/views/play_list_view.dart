@@ -3,14 +3,13 @@
 
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:get/get.dart';
-import 'package:music_player_getx/models/AudioModel.dart';
-import 'package:music_player_getx/presentation/controller/PlayListController.dart';
+import 'package:music_player_getx/models/audio_model.dart';
+import 'package:music_player_getx/presentation/controller/play_list_controller.dart';
 import 'package:music_player_getx/widgets/not_found_data_widget.dart';
 import 'package:music_player_getx/widgets/null_art_work.dart';
 import 'package:music_player_getx/widgets/resuable/animated_switcher_icon.dart';
 import 'package:music_player_getx/widgets/resuable/appbar_widget.dart';
 import 'package:music_player_getx/widgets/resuable/circle_button_neu.dart';
-import 'package:music_player_getx/widgets/resuable/current_audio.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class PlayListView extends GetView<PlayListController>
@@ -104,7 +103,7 @@ class PlayListView extends GetView<PlayListController>
            ),
            CircleButtonNeu(
              onPress: (){
-               controller.homeController.audioModel?.value = data!;
+               controller.homeController.listFav = data!;
                controller.homeController.playOrPause(item, index);
              },
              child:  Obx(

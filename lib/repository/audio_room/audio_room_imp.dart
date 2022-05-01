@@ -1,7 +1,7 @@
 
 
 
-import 'package:music_player_getx/repository/audio_room/AudioRoomRep.dart';
+import 'package:music_player_getx/repository/audio_room/audio_room_repo.dart';
 import 'package:on_audio_room/on_audio_room.dart';
 
 class AudioRoomImp extends AudioRoomRep

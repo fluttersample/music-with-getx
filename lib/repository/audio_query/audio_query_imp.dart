@@ -3,7 +3,7 @@
 
 import 'dart:typed_data';
 
-import 'package:music_player_getx/repository/audio_query/AudioQueryRepo.dart';
+import 'package:music_player_getx/repository/audio_query/audio_query_repo.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
 class AudioQueryImp extends AudioQueryRepo
@@ -15,7 +15,7 @@ class AudioQueryImp extends AudioQueryRepo
   Future<List<SongModel>> getAllSong() async{
 
     return await _audioQuery.querySongs(
-        sortType: SongSortType.DISPLAY_NAME,
+        sortType: SongSortType.ARTIST,
       
     ).onError((error, stackTrace) {
       print(error.toString());
@@ -74,7 +74,7 @@ class AudioQueryImp extends AudioQueryRepo
   }
 
   @override
-  Future<bool> remoteToPlayList(int playListId, int audioId) async{
+  Future<bool> removeToPlayList(int playListId, int audioId) async{
     return await _audioQuery.removeFromPlaylist(playListId, audioId);
 
   }

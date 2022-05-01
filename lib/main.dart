@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:music_player_getx/core/routs/AppPage.dart';
-import 'package:music_player_getx/core/theme/AppThemeDark.dart';
-import 'package:music_player_getx/core/theme/AppThemeLight.dart';
+import 'package:music_player_getx/core/routs/app_page.dart';
+import 'package:music_player_getx/core/theme/app_theme_dark.dart';
+import 'package:music_player_getx/core/theme/app_theme_light.dart';
 import 'package:music_player_getx/injection_container.dart';
-import 'package:music_player_getx/presentation/views/SplashView.dart';
+import 'package:music_player_getx/presentation/views/splash_view.dart';
 import 'package:on_audio_room/on_audio_room.dart';
 
 
@@ -22,7 +22,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       title: 'Evo Music',
-
       debugShowCheckedModeBanner: false,
       darkTheme: AppThemeDark.instance.theme,
       theme: AppThemeLight.instance.theme,

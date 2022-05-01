@@ -24,7 +24,7 @@ abstract class AudioQueryRepo{
 
   Future<bool> addToPlayList(int playListId , int audioId);
 
-  Future<bool> remoteToPlayList(int playListId , int audioId);
+  Future<bool> removeToPlayList(int playListId , int audioId);
 
   Future<List<PlaylistModel>> getPlayList();
 

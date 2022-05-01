@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:get/get.dart';
-import 'package:music_player_getx/models/AudioModel.dart';
+import 'package:music_player_getx/models/audio_model.dart';
 import 'package:music_player_getx/widgets/resuable/current_audio.dart';
 
 class Utils {

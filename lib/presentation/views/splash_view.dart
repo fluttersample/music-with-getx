@@ -2,7 +2,7 @@
 
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:get/get.dart';
-import 'package:music_player_getx/presentation/controller/SplashViewModel.dart';
+import 'package:music_player_getx/presentation/controller/splash_controller.dart';
 
 
 class SplashView extends GetView<SplashViewModel> {

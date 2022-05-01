@@ -2,9 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:get/get.dart';
-import 'package:music_player_getx/models/AudioModel.dart';
-import 'package:music_player_getx/presentation/controller/HomeViewModel.dart';
-import 'package:music_player_getx/presentation/views/PlayListView.dart';
+import 'package:music_player_getx/models/audio_model.dart';
+import 'package:music_player_getx/presentation/controller/home_controller.dart';
+import 'package:music_player_getx/presentation/views/play_list_view.dart';
 import 'package:music_player_getx/utils/Utils.dart';
 import 'package:music_player_getx/widgets/error_widget.dart';
 import 'package:music_player_getx/widgets/loading_widget.dart';
@@ -46,7 +46,9 @@ class HomeView extends GetView<HomeViewModel> {
                       condition: controller.isPlayNow(data.id!))),
                   playOrPause: (){
                     controller.playOrPause(data,controller.indexCurrent);
-                  })
+                  },
+                stopAnim: controller.isPlayNow(data.id!),
+                controllerRotate: controller.animationController,)
           );
 
         });
@@ -75,7 +77,7 @@ class HomeView extends GetView<HomeViewModel> {
          // bottomSheet: _buildBottomSheet(theme),
           body: Column(
             children: [
-              // _buildSearchWidget(),
+               // _buildSearchWidget(),
               _buildBody(theme)],
           ));
       },
@@ -212,64 +214,40 @@ class HomeView extends GetView<HomeViewModel> {
       ),
     );
   }
-  Widget _buildSearchWidget() {
-    return Neumorphic(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 25),
-      style: const NeumorphicStyle(
-        color: Colors.white,
-        boxShape: NeumorphicBoxShape.stadium(),
-        depth: 1,
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 18),
-      child: SizedBox(
-        height: 30,
-        child: TextField(
-          controller: controller.searchController,
-          decoration: const InputDecoration(
-              hintText: "search music",
-              contentPadding: EdgeInsets.all(0),
-              enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    style: BorderStyle.none,
-                  )),
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(
-                  style: BorderStyle.none,
-                ),
-              )),
-          // onChanged: controller.searchInListAudio,
+  // Widget _buildSearchWidget() {
+  //   return Neumorphic(
+  //     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 25),
+  //     style: const NeumorphicStyle(
+  //       color: Colors.white,
+  //       boxShape: NeumorphicBoxShape.stadium(),
+  //       depth: 1,
+  //     ),
+  //     padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 18),
+  //     child: SizedBox(
+  //       height: 30,
+  //       child: TextField(
+  //         controller: controller.searchController,
+  //         decoration: const InputDecoration(
+  //             hintText: "search music",
+  //             contentPadding: EdgeInsets.all(0),
+  //             enabledBorder: OutlineInputBorder(
+  //                 borderSide: BorderSide(
+  //                   style: BorderStyle.none,
+  //                 )),
+  //             focusedBorder: OutlineInputBorder(
+  //               borderSide: BorderSide(
+  //                 style: BorderStyle.none,
+  //               ),
+  //             )),
+  //          onSubmitted: controller.searchInListAudio,
+  //
+  //       ),
+  //     ),
+  //   );
+  //
+  // }
 
-        ),
-      ),
-    );
 
-  }
-
-  Widget _buildBottomSheet(ThemeData theme) {
-    return StreamBuilder<AudioModel?>(
-      stream: controller.currentAudio?.stream,
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final data = snapshot.data;
-          return CurrentAudioWidget(
-              data: data!,
-              seekToPrevious: (){controller.seekToPrevious();},
-              seekToNext: (){controller.seekToNext();},
-              widget: Obx(() => AnimatedSwitcherIcon(
-                  icFalse: Icons.play_arrow,
-                  colorFalseButton: theme.colorScheme.surface,
-                  colorTrueButton: theme.colorScheme.surface,
-                  icTrue: Icons.pause,
-                  condition: controller.isPlayNow(data.id!))),
-              playOrPause: (){
-                controller.playOrPause(data,controller.indexCurrent);
-              });
-        }
-        return const SizedBox();
-      },
-    );
-
-  }
 
 
 
@@ -307,8 +285,10 @@ class HomeView extends GetView<HomeViewModel> {
                           color: theme.primaryColorLight.withOpacity(0.5),
                             child: const MyErrorWidget(size: 45,)),
                       ),
-                      _buildPlaySound(data,index),
-
+                      _buildPlaySound(
+                        data: data,
+                        index: index
+                      ),
                       _buildBtnPlayList(
                         index: index,
                         data: data
@@ -354,14 +334,19 @@ class HomeView extends GetView<HomeViewModel> {
 
 
 
-  Widget _buildPlaySound(AudioModel data,int index) {
+  Widget _buildPlaySound({
+    required AudioModel data,
+    required int index}) {
     return Positioned(
       bottom: 15,
       right: 12,
       child: InkWell(
         onTap: (){
+          if(controller.listFav!.isNotEmpty)
+            {
+              controller.listFav!.clear();
+            }
           controller.playOrPause(data,index);
-
         },
         child: Container(
           height: 35,
